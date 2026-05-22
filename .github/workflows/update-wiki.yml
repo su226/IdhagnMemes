@@ -1,0 +1,40 @@
+name: Update wiki
+
+on:
+  push:
+    branches:
+      - "main"
+    paths:
+      - "src/idhagnmemes/**"
+
+jobs:
+  update-wiki:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v6
+
+      - name: Checkout wiki
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ github.repository }}.wiki
+          path: wiki
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v8.1.0
+
+      - name: Install Python dependencies
+        run: uv sync
+
+      - name: Modify meme-generator config
+        run: |
+          mkdir -p ~/.config/meme_generator
+          echo -e "[meme]\nload_builtin_memes = false\nmeme_dirs = [\"$GITHUB_WORKSPACE/src/idhagnmemes\"]" > ~/.config/meme_generator/config.toml
+
+      - name: Update wiki
+        run: uv run update_wiki.py
+
+      - name: Commit wiki
+        uses: stefanzweifel/git-auto-commit-action@v7.1.0
+        with:
+          repository: wiki
