@@ -10,6 +10,8 @@ on:
 jobs:
   update-wiki:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout project
         uses: actions/checkout@v6
@@ -22,6 +24,12 @@ jobs:
 
       - name: Setup uv
         uses: astral-sh/setup-uv@v8.1.0
+
+      - name: Install system packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fonts-noto-color-emoji libegl1
+          fc-cache -fv
 
       - name: Install Python dependencies
         run: uv sync
