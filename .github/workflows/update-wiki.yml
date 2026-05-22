@@ -6,7 +6,6 @@ on:
       - "main"
     paths:
       - "src/idhagnmemes/**"
-  workflow_dispatch:
 
 jobs:
   update-wiki:
@@ -29,7 +28,7 @@ jobs:
       - name: Install system packages
         run: |
           sudo apt-get update
-          sudo apt-get install -y fonts-noto-color-emoji libegl1
+          sudo apt-get install -y fonts-noto-color-emoji fonts-noto-cjk-extra libegl1
           fc-cache -fv
 
       - name: Install Python dependencies
