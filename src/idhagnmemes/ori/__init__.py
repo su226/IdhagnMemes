@@ -27,6 +27,6 @@ add_meme(
     min_images=1,
     max_images=1,
     keywords=["ori", "拥抱光明"],
-    date_created=datetime(2022, 11, 11),
+    date_created=datetime(2022, 2, 14),
     date_modified=datetime(2025, 12, 4),
 )
