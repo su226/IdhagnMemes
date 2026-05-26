@@ -4,21 +4,38 @@ from pathlib import Path
 
 from meme_generator import add_meme
 from meme_generator.meme import MemeArgsModel
+from meme_generator.utils import make_jpg_or_gif
+from PIL import Image
 from pil_utils import BuildImage
 
 img_dir = Path(__file__).parent / "images"
 
 
+def flatten(image: BuildImage) -> BuildImage:
+    if image.image.has_transparency_data:
+        if image.mode != "RGBA":
+            image = image.convert("RGBA")
+        out = Image.new("RGB", image.size, "white")
+        out.paste(image.image, mask=image.image)
+        return BuildImage(out)
+    if image.mode != "RGB":
+        return image.convert("RGB")
+    return image
+
+
 def ori(images: list[BuildImage], texts: list[str], args: MemeArgsModel) -> BytesIO:
-    return (
-        BuildImage.open(img_dir / "0.png")
-        .paste(
-            images[0].convert("RGBA").circle().resize((100, 100)),
+    base = BuildImage.open(img_dir / "0.png")
+
+    def make(images: list[BuildImage]) -> BuildImage:
+        return base.paste(
+            flatten(
+                images[0].convert("RGBA").resize((100, 100), keep_ratio=True)
+            ).circle(),
             (305, 222),
             alpha=True,
         )
-        .save_jpg()
-    )
+
+    return make_jpg_or_gif(images, make)
 
 
 add_meme(

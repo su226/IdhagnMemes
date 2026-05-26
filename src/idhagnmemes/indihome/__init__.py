@@ -44,21 +44,23 @@ def indihome(
     texts: list[str],
     args: MemeArgsModel,
 ) -> BytesIO:
-    image = images[0].resize((360, 360)).circle().image
+    price_bg_im = Image.open(img_dir / "0.png")
+    price_fg_im = Image.open(img_dir / "1.png")
+    width, height = price_bg_im.size
+    assert width == height, "素材无效"
+    image = images[0].convert("RGBA").resize((360, 360)).circle().image
     frames = list[Image.Image]()
     durations = list[int]()
     for i in range(SLIDE_FRAMES):
-        im = Image.new("RGB", (360, 360), (255, 255, 255))
-        im.paste(image, lerp((360, 0), (0, 0), i / SLIDE_FRAMES), image)
+        im = Image.new("RGB", (width, height), (255, 255, 255))
+        im.paste(image, lerp((width, 0), (0, 0), i / SLIDE_FRAMES), image)
         frames.append(im)
         durations.append(SLIDE_DURATION // SLIDE_FRAMES)
-    avatar_im = Image.new("RGBA", (360, 360), (255, 255, 255, 255))
+    avatar_im = Image.new("RGBA", (width, height), (255, 255, 255, 255))
     avatar_im.paste(image, AVATAR_BOX, image)
     frames.append(avatar_im)
     durations.append(AVATAR_DURATION)
-    white = Image.new("RGB", (360, 360), (255, 255, 255))
-    price_bg_im = Image.open(img_dir / "0.png")
-    price_fg_im = Image.open(img_dir / "1.png")
+    white = Image.new("RGB", (width, height), (255, 255, 255))
     for i in range(SCALE_FRAMES):
         ratio = (i + 1) / (SCALE_FRAMES + 1)
         price_im = make_price_im(price_bg_im, price_fg_im)

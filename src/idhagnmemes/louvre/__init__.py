@@ -8,6 +8,7 @@ import numpy as np
 from arclet.alconna import store_false
 from meme_generator import MemeArgsType, ParserArg, ParserOption, add_meme
 from meme_generator.meme import MemeArgsModel
+from meme_generator.utils import make_jpg_or_gif
 from PIL import Image, ImageChops, ImageFilter
 from pil_utils import BuildImage
 from pil_utils.gradient import ColorStop, LinearGradient
@@ -18,6 +19,29 @@ img_dir = Path(__file__).parent / "images"
 
 def kernel_average(size: int) -> np.ndarray[Any, Any]:
     return np.full((size, size), 1 / size**2)
+
+
+def convolve(image: Image.Image, kernel: np.ndarray[Any, Any]) -> Image.Image:
+    # 因为 PIL 只支持 3x3 和 5x5 的卷积核，NumPy 的卷积是一维的，要用 OpenCV
+    return Image.fromarray(cv2.filter2D(np.asarray(image), -1, kernel))
+
+    # 替代方案：使用 Skia 进行卷积（经测试，非常慢）
+    # assert image.mode == "L"
+    # skia_image = skia.Image.frombytes(im.tobytes(), im.size, skia.kGray_8_ColorType)
+    # surface = skia.Surfaces.MakeRaster(skia_image.imageInfo())
+    # canvas = surface.getCanvas()
+    # kernel_width, kernel_height = kernel.shape
+    # image_filter = skia.ImageFilters.MatrixConvolution(
+    #     kernelSize=(kernel_width, kernel_height),
+    #     kernel=list(kernel.flatten()),
+    #     gain=1.0,
+    #     bias=0.0,
+    #     kernelOffset=(kernel_width // 2, kernel_height // 2),
+    #     tileMode=skia.TileMode.kClamp,
+    #     convolveAlpha=False,
+    # )
+    # canvas.drawImage(skia_image, 0, 0, paint=skia.Paint(ImageFilter=image_filter))
+    # return Image.fromarray(surface.makeImageSnapshot())
 
 
 KERNELS: dict[str, np.ndarray[Any, Any]] = {
@@ -50,18 +74,15 @@ def make_mask(
     shade = im.point(lambda v: 0 if v > shade_limit else 255, "L")
     shade = shade.filter(ImageFilter.BoxBlur(3))
     shade = ImageChops.multiply(shade, ImageChops.invert(pencil))
-    shade = ImageChops.multiply(shade, Image.new("L", shade.size, SHADE_LIGHT))
+    shade = ImageChops.multiply(shade, ImageChops.constant(shade, SHADE_LIGHT))
 
     if denoise:
         im = im.filter(ImageFilter.Kernel((3, 3), [1] * 9, 9))
+    im1 = convolve(im, KERNELS[kernel])
 
-    # 因为PIL只支持3x3和5x5的卷积核，NumPy的卷积是一维的，要用OpenCV
-    im1 = Image.fromarray(cv2.filter2D(np.array(im), -1, KERNELS[kernel]))
     im = ImageChops.subtract(im, im1, 1, 128)
-
     scale = (255 - LIGHT_CUT - dark_cut) / 255
-    im = ImageChops.subtract(im, Image.new("L", im.size, dark_cut), scale)
-
+    im = ImageChops.subtract(im, ImageChops.constant(im, dark_cut), scale)
     return ImageChops.lighter(ImageChops.invert(im), shade)
 
 
@@ -80,12 +101,15 @@ def make_gradient(width: int, height: int) -> Image.Image:
 
 
 def grayscale(image: Image.Image) -> Image.Image:
-    if image.mode in ("RGBA", "RGBa", "LA", "La"):
-        image = image.convert("LA")
-        out = Image.new("L", image.size, 255)
+    if image.has_transparency_data:
+        if image.mode != "LA":
+            image = image.convert("LA")
+        out = Image.new("L", image.size, "white")
         out.paste(image, mask=image)
         return out
-    return image.convert("L")
+    if image.mode != "L":
+        return image.convert("L")
+    return image
 
 
 class Model(MemeArgsModel):
@@ -127,19 +151,23 @@ args_type = MemeArgsType(
 
 
 def louvre(images: list[BuildImage], texts: list[str], args: Model) -> BytesIO:
-    print(args)
-    image = grayscale(images[0].image)
+    width, height = images[0].size
     pencil = (
         BuildImage.open(img_dir / "0.jpg")
         .convert("L")
-        .resize(image.size, keep_ratio=True)
+        .resize((width, height), keep_ratio=True)
         .image
     )
-    gradient = make_gradient(image.width, image.height)
-    mask = make_mask(image, pencil, args.style, args.edge, args.shade, args.denoise)
-    frame = Image.new("RGB", image.size, (255, 255, 255))
-    frame.paste(gradient, mask=mask)
-    return BuildImage(frame).save_jpg()
+    gradient = make_gradient(width, height)
+
+    def make(images: list[BuildImage]) -> BuildImage:
+        image = grayscale(images[0].image)
+        mask = make_mask(image, pencil, args.style, args.edge, args.shade, args.denoise)
+        frame = Image.new("RGB", image.size, (255, 255, 255))
+        frame.paste(gradient, mask=mask)
+        return BuildImage(frame)
+
+    return make_jpg_or_gif(images, make)
 
 
 add_meme(
@@ -149,6 +177,6 @@ add_meme(
     max_images=1,
     args_type=args_type,
     keywords=["卢浮宫"],
-    date_created=datetime(1, 1, day=1),
+    date_created=datetime(2022, 8, 22),
     date_modified=datetime(2026, 5, 24),
 )
