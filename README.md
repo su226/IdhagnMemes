@@ -5,3 +5,7 @@
 [--> 表情列表 <--](https://github.com/su226/IdhagnMemes/wiki/%E8%A1%A8%E6%83%85%E5%88%97%E8%A1%A8)
 
 [--> 如何加载表情 <--](https://github.com/MemeCrafters/meme-generator/wiki/%E5%8A%A0%E8%BD%BD%E5%85%B6%E4%BB%96%E8%A1%A8%E6%83%85)
+
+## 特别感谢
+
+- [One Last Image](https://lab.magiconch.com/one-last-image/)（“卢浮宫”梗图）的原作者 [itorr](https://github.com/itorr/)。

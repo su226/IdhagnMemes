@@ -1,3 +1,8 @@
+"""
+特别感谢：One Last Image 的原作者 itorr
+https://lab.magiconch.com/one-last-image/
+"""
+
 from datetime import datetime
 from io import BytesIO
 from pathlib import Path
