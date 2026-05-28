@@ -3,6 +3,7 @@ from io import BytesIO
 from pathlib import Path
 
 from meme_generator import add_meme
+from meme_generator.exception import TextOverLength
 from meme_generator.meme import MemeArgsModel
 from pil_utils import BuildImage
 from pil_utils.typing import SkiaFontStyle
@@ -11,9 +12,9 @@ img_dir = Path(__file__).parent / "images"
 
 
 def addict(images: list[BuildImage], texts: list[str], args: MemeArgsModel) -> BytesIO:
-    return (
-        BuildImage.open(img_dir / "0.png")
-        .draw_text(
+    frame = BuildImage.open(img_dir / "0.png")
+    try:
+        frame = frame.draw_text(
             (398, 648, 688, 720),
             texts[0],
             max_fontsize=50,
@@ -26,8 +27,9 @@ def addict(images: list[BuildImage], texts: list[str], args: MemeArgsModel) -> B
             fill="white",
             lines_align="center",
         )
-        .save_jpg()
-    )
+    except ValueError as e:
+        raise TextOverLength(texts[0]) from e
+    return frame.save_jpg()
 
 
 add_meme(

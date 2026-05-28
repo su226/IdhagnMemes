@@ -3,7 +3,7 @@ from io import BytesIO
 from pathlib import Path
 
 from meme_generator import add_meme
-from meme_generator.exception import MemeFeedback
+from meme_generator.exception import MemeFeedback, TextOverLength
 from meme_generator.meme import MemeArgsModel
 from pil_utils import BuildImage
 
@@ -29,21 +29,29 @@ def make_sound(
         frame = frame.paste(base, alpha=True)
     elif dialogue_text is not None:
         frame = frame.paste(base, alpha=True)
-        frame = frame.draw_text(
-            (6, 26, 128, 100),
-            dialogue_text,
-            min_fontsize=20,
-            max_fontsize=50,
-        )
+        try:
+            frame = frame.draw_text(
+                (6, 26, 128, 100),
+                dialogue_text,
+                min_fontsize=20,
+                max_fontsize=50,
+            )
+        except ValueError as e:
+            raise TextOverLength(dialogue_text) from e
     else:
         raise MemeFeedback("需要包含文本或图片")
 
-    return frame.draw_text(
-        (0, 310, 380, 380),
-        caption,
-        min_fontsize=20,
-        max_fontsize=50,
-    ).save_jpg()
+    try:
+        frame = frame.draw_text(
+            (0, 310, 380, 380),
+            caption,
+            min_fontsize=20,
+            max_fontsize=50,
+        )
+    except ValueError as e:
+        raise TextOverLength(caption) from e
+
+    return frame.save_jpg()
 
 
 add_meme(
