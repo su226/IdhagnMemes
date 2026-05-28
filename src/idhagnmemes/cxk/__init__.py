@@ -33,7 +33,7 @@ add_meme(
     cxk,
     min_images=2,
     max_images=2,
-    keywords=["蔡徐坤", "cxk", "打篮球", "鸡你太美"],
+    keywords=["蔡徐坤", "cxk", "鸡你太美"],
     date_created=datetime(2022, 2, 14),
     date_modified=datetime(2026, 5, 22),
 )
