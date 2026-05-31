@@ -5,22 +5,11 @@ from pathlib import Path
 from meme_generator import add_meme
 from meme_generator.meme import MemeArgsModel
 from meme_generator.utils import make_jpg_or_gif
-from PIL import Image
 from pil_utils import BuildImage
 
+from idhagnmemes.image import flatten
+
 img_dir = Path(__file__).parent / "images"
-
-
-def flatten(image: BuildImage) -> BuildImage:
-    if image.image.has_transparency_data:
-        if image.mode != "RGBA":
-            image = image.convert("RGBA")
-        out = Image.new("RGB", image.size, "white")
-        out.paste(image.image, mask=image.image)
-        return BuildImage(out)
-    if image.mode != "RGB":
-        return image.convert("RGB")
-    return image
 
 
 def ori(images: list[BuildImage], texts: list[str], args: MemeArgsModel) -> BytesIO:
@@ -28,8 +17,10 @@ def ori(images: list[BuildImage], texts: list[str], args: MemeArgsModel) -> Byte
 
     def make(images: list[BuildImage]) -> BuildImage:
         return base.paste(
-            flatten(
-                images[0].convert("RGBA").resize((100, 100), keep_ratio=True)
+            BuildImage(
+                flatten(
+                    images[0].convert("RGBA").resize((100, 100), keep_ratio=True).image
+                )
             ).circle(),
             (305, 222),
             alpha=True,

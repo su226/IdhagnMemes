@@ -19,6 +19,8 @@ from pil_utils import BuildImage
 from pil_utils.gradient import ColorStop, LinearGradient
 from pydantic import Field
 
+from idhagnmemes.image import flatten_grayscale
+
 img_dir = Path(__file__).parent / "images"
 
 
@@ -105,18 +107,6 @@ def make_gradient(width: int, height: int) -> Image.Image:
     ).create_image((width, height))
 
 
-def grayscale(image: Image.Image) -> Image.Image:
-    if image.has_transparency_data:
-        if image.mode != "LA":
-            image = image.convert("LA")
-        out = Image.new("L", image.size, "white")
-        out.paste(image, mask=image)
-        return out
-    if image.mode != "L":
-        return image.convert("L")
-    return image
-
-
 class Model(MemeArgsModel):
     style: Literal["thin", "normal", "semibold", "bold", "black", "emboss"] = Field(
         "normal", description="线条风格"
@@ -166,7 +156,7 @@ def louvre(images: list[BuildImage], texts: list[str], args: Model) -> BytesIO:
     gradient = make_gradient(width, height)
 
     def make(images: list[BuildImage]) -> BuildImage:
-        image = grayscale(images[0].image)
+        image = flatten_grayscale(images[0].image)
         mask = make_mask(image, pencil, args.style, args.edge, args.shade, args.denoise)
         frame = Image.new("RGB", image.size, (255, 255, 255))
         frame.paste(gradient, mask=mask)
