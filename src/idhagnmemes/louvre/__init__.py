@@ -120,22 +120,22 @@ args_type = MemeArgsType(
     args_model=Model,
     parser_options=[
         ParserOption(
-            names=["--style"],
+            names=["-s", "--style"],
             args=[ParserArg(name="style", value="str")],
             help_text="线条风格",
         ),
         ParserOption(
-            names=["--edge"],
+            names=["-e", "--edge"],
             args=[ParserArg(name="edge", value="int")],
             help_text="边缘强度",
         ),
         ParserOption(
-            names=["--shade"],
+            names=["-s", "--shade"],
             args=[ParserArg(name="shade", value="int")],
             help_text="暗部强度",
         ),
         ParserOption(
-            names=["--no-denoise"],
+            names=["-D", "--no-denoise"],
             dest="denoise",
             default=True,
             action=store_false,

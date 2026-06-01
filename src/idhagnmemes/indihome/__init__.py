@@ -9,6 +9,8 @@ from meme_generator.meme import MemeArgsModel
 from PIL import Image
 from pil_utils import BuildImage
 
+from idhagnmemes.image import flatten
+
 img_dir = Path(__file__).parent / "images"
 AVATAR_BOX = (0, 0, 360, 360)
 PRICE_BOX = (225, 66, 305, 146)
@@ -48,7 +50,8 @@ def indihome(
     price_fg_im = Image.open(img_dir / "1.png")
     width, height = price_bg_im.size
     assert width == height, "素材无效"
-    image = images[0].convert("RGBA").resize((360, 360)).circle().image
+    image = flatten(images[0].convert("RGBA").resize((360, 360)).image)
+    image = BuildImage(image).circle().image
     frames = list[Image.Image]()
     durations = list[int]()
     for i in range(SLIDE_FRAMES):
