@@ -14,3 +14,4 @@ from idhagnmemes import netease_mc as netease_mc
 from idhagnmemes import nokia as nokia
 from idhagnmemes import ori as ori
 from idhagnmemes import orly as orly
+from idhagnmemes import patrick as patrick
