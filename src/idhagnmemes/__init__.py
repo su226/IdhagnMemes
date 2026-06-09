@@ -5,6 +5,7 @@ sys.path.append(str(Path(__file__).parents[1]))
 
 from idhagnmemes import addict as addict
 from idhagnmemes import cxk as cxk
+from idhagnmemes import deepseek as deepseek
 from idhagnmemes import flash as flash
 from idhagnmemes import good_answer as good_answer
 from idhagnmemes import indihome as indihome
